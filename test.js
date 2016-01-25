@@ -291,10 +291,12 @@ describe('Jsonium', function () {
         {k1: 'v1', k3: 'v2'},
         {k1: 'v3', k3: 'v4'}
       ];
-      this.J2.setTemplates(this.templates).createCombos(this.keys, this.combos);
       this.J.setTemplates(this.templates);
+      this.J2.setTemplates(this.templates).createCombos(this.keys, this.combos);
+      var j2Combos = this.J2.getCombos();
       this.result1 = this.J.createCombos(this.keys, this.combos).concatCombos(this.J2).getCombos();
-      this.result2 = this.J.createCombos(this.keys, this.combos).concatCombos(this.J2.getCombos()).getCombos();
+      this.J.clearCombos();
+      this.result2 = this.J.createCombos(this.keys, this.combos).concatCombos(j2Combos).getCombos();
     });
 
     it('combos with Jsonium', function () {
@@ -404,6 +406,51 @@ describe('Jsonium', function () {
         expect(this.result[3]).to.be.eql({key1: 'v3 2', key2: '{{k2}} 2', key3: 'v4 2'});
       });
 
+    });
+
+  });
+
+  describe('#useCombosAsTemplates', function () {
+
+    beforeEach(function () {
+      this.templates = [
+        {key1: '{{k1}} 1', key2: '{{k2}} 1', key3: '{{k3}} 1'},
+        {key1: '{{k1}} 2', key2: '{{k2}} 2', key3: '{{k3}} 2'}
+      ];
+      this.keys = ['key1', 'key3'];
+      this.combos = [
+        {k1: '{{v1}}', k3: 'v2'},
+        {k1: '{{v1}}', k3: 'v4'}
+      ];
+      this.combos2 = [
+        {v1: 'b1'}
+      ];
+      this.result = this.J
+        .setTemplates(this.templates)
+        .createCombos(this.keys, this.combos)
+        .useCombosAsTemplates()
+        .createCombos('key1', this.combos2)
+        .getCombos();
+    });
+
+    it('4 combos are created', function () {
+      expect(this.result).to.have.property('length').equal(4);
+    });
+
+    it('1st combo', function () {
+      expect(this.result[0]).to.be.eql({key1: 'b1 1', key2: '{{k2}} 1', key3: 'v2 1'});
+    });
+
+    it('2nd combo', function () {
+      expect(this.result[1]).to.be.eql({key1: 'b1 1', key2: '{{k2}} 1', key3: 'v4 1'});
+    });
+
+    it('3rd combo', function () {
+      expect(this.result[2]).to.be.eql({key1: 'b1 2', key2: '{{k2}} 2', key3: 'v2 2'});
+    });
+
+    it('4th combo', function () {
+      expect(this.result[3]).to.be.eql({key1: 'b1 2', key2: '{{k2}} 2', key3: 'v4 2'});
     });
 
   });

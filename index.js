@@ -58,6 +58,7 @@ Jsonium.prototype.createCombos = function (keysWhereReplace, data) {
   var _keysWhereReplace = type(Array).is(keysWhereReplace) ? keysWhereReplace : [keysWhereReplace];
   var _data = type(Jsonium).is(data) ? data.getCombos() : (type(Array).is(data) ? data : [data]);
   var self = this;
+  this._results = [];
   this._templates.forEach(function(template) {
     _data.forEach(function (combo) {
       var t = cp(template);
@@ -83,7 +84,7 @@ Jsonium.prototype.createCombos = function (keysWhereReplace, data) {
  * @return {Jsonium}
  */
 Jsonium.prototype.concatCombos = function (combos) {
-  this._results.concat(type(Jsonium).is(combos) ? combos.getCombos() : combos);
+  this._results = this._results.concat(type(Jsonium).is(combos) ? combos.getCombos() : (type(Array).of(Object).is(combos) ? combos : []));
   return this;
 };
 
@@ -157,6 +158,16 @@ Jsonium.prototype.uniqueCombos = function () {
     }
   });
   this._results = ret;
+  return this;
+};
+
+/**
+ * Move created combos to the templates
+ *
+ * @returns {Jsonium}
+ */
+Jsonium.prototype.useCombosAsTemplates = function () {
+  this._templates = cp(this._results);
   return this;
 };
 
