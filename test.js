@@ -1,6 +1,5 @@
 var Jsonium = require('./index.js');
 var chai = require('chai');
-chai.use(require('chai-string'));
 var expect = chai.expect;
 
 describe('Jsonium', function () {
