@@ -67,3 +67,5 @@ var result = new Jsonium(templates2).createCombos(keys2, J).getCombos();
 Here `J`'s created combinations will be used like datasets in the another `Jsonium`-instance.
 
 `keys` may be nested (`a.b.c`) and indexed (`a.0`).
+
+Each substring in the templates you want to be replaced should be wrapped with `{{`, `}}`.
