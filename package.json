@@ -1,7 +1,7 @@
 {
   "name": "jsonium",
   "version": "1.0.0",
-  "description": "",
+  "description": "Yet another JSONs generator",
   "main": "index.js",
   "dependencies": {
     "deep-equal": "^1.0.1",
@@ -11,7 +11,6 @@
   },
   "devDependencies": {
     "chai": "^3.4.1",
-    "chai-string": "^1.1.6",
     "mocha": "^2.3.4"
   },
   "scripts": {
