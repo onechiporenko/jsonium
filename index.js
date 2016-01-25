@@ -56,7 +56,7 @@ Jsonium.prototype.setTemplates = function (templates) {
  */
 Jsonium.prototype.createCombos = function (keysWhereReplace, data) {
   var _keysWhereReplace = type(Array).is(keysWhereReplace) ? keysWhereReplace : [keysWhereReplace];
-  var _data = type(Jsonium).is(data) ? data.getCombos() : ( type(Array).is(data) ? data : [data]);
+  var _data = type(Jsonium).is(data) ? data.getCombos() : (type(Array).is(data) ? data : [data]);
   var self = this;
   this._templates.forEach(function(template) {
     _data.forEach(function (combo) {
