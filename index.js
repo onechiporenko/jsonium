@@ -1,17 +1,6 @@
 var cp = require('utils-copy');
 var objectPath = require("object-path");
 var type = require('typecheckjs');
-var deepEqual = require('deep-equal');
-
-function _find(collection, combo) {
-  for (var i = 0; i < collection.length; i++) {
-    var item = collection[i];
-    if (deepEqual(item, combo)) {
-      return true;
-    }
-  }
-  return false;
-}
 
 /**
  * @param {object[]} templates
@@ -32,7 +21,7 @@ Jsonium.prototype.constructor = Jsonium;
  */
 Jsonium.prototype.setTemplates = function (templates) {
   if (type(Array).of(Object).is(templates)) {
-    this._templates = templates;
+    this._templates = cp(templates);
   }
   return this;
 };
@@ -58,7 +47,7 @@ Jsonium.prototype.createCombos = function (keysWhereReplace, data) {
   var _keysWhereReplace = type(Array).is(keysWhereReplace) ? keysWhereReplace : [keysWhereReplace];
   var _data = type(Jsonium).is(data) ? data.getCombos() : (type(Array).is(data) ? data : [data]);
   var self = this;
-  this._results = [];
+  this.clearCombos();
   this._templates.forEach(function(template) {
     _data.forEach(function (combo) {
       var t = cp(template);
@@ -157,9 +146,12 @@ Jsonium.prototype.clearTemplates = function () {
  */
 Jsonium.prototype.uniqueCombos = function () {
   var ret = [];
+  var map = {};
   this._results.forEach(function (combo) {
-    if (!_find(ret, combo)) {
+    var str = JSON.stringify(combo);
+    if (!map[str]) {
       ret.push(combo);
+      map[str] = true;
     }
   });
   this._results = ret;
