@@ -214,8 +214,8 @@ describe('Jsonium', function () {
         ];
         this.keys = ['s.key1', 's.key3'];
         this.combos = [
-          {k1: 'v1', k3: 'v2'},
-          {k1: 'v3', k3: 'v4'}
+          {k1: 'v1', k3: 'v2', 's.key3': 'custom'},
+          {k1: 'v3', k3: 'v4', 's.key3': 'custom'}
         ];
         this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
       });
@@ -238,6 +238,43 @@ describe('Jsonium', function () {
 
       it('4th combo', function () {
         expect(this.result[3].s).to.be.eql({key1: 'v3 2', key2: '{{k2}} 2'});
+      });
+
+    });
+
+    describe('combo-property is not a string in the templates', function () {
+
+      beforeEach(function () {
+        this.templates = [
+          {s: {key1: '{{k1}} 1', key2: '{{k2}} 1', key3: 1234}},
+          {s: {key1: '{{k1}} 2', key2: '{{k2}} 2', key3: 1234}}
+        ];
+        this.keys = ['s.key1', 's.key3'];
+        this.combos = [
+          {k1: 'v1', k3: 'v2', 's.key3': 'custom'},
+          {k1: 'v3', k3: 'v4', 's.key3': 'custom'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
+      });
+
+      it('4 combos are created', function () {
+        expect(this.result).to.have.property('length').equal(4);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0].s).to.be.eql({key1: 'v1 1', key2: '{{k2}} 1', key3: 'custom'});
+      });
+
+      it('2nd combo', function () {
+        expect(this.result[1].s).to.be.eql({key1: 'v3 1', key2: '{{k2}} 1', key3: 'custom'});
+      });
+
+      it('3rd combo', function () {
+        expect(this.result[2].s).to.be.eql({key1: 'v1 2', key2: '{{k2}} 2', key3: 'custom'});
+      });
+
+      it('4th combo', function () {
+        expect(this.result[3].s).to.be.eql({key1: 'v3 2', key2: '{{k2}} 2', key3: 'custom'});
       });
 
     });
