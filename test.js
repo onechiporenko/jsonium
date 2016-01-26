@@ -47,6 +47,43 @@ describe('Jsonium', function () {
 
     });
 
+    describe('multiple replace in one key', function () {
+
+      beforeEach(function () {
+        this.templates = [
+          {key1: '{{k1}} {{k1}} 1'},
+          {key1: '{{k1}} {{k1}} 2'}
+        ];
+        this.keys = 'key1';
+        this.combos = [
+          {k1: 'v1'},
+          {k1: 'v3'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
+      });
+
+      it('4 combos are created', function () {
+        expect(this.result).to.have.property('length').equal(4);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({key1: 'v1 v1 1'});
+      });
+
+      it('2nd combo', function () {
+        expect(this.result[1]).to.be.eql({key1: 'v3 v3 1'});
+      });
+
+      it('3rd combo', function () {
+        expect(this.result[2]).to.be.eql({key1: 'v1 v1 2'});
+      });
+
+      it('4th combo', function () {
+        expect(this.result[3]).to.be.eql({key1: 'v3 v3 2'});
+      });
+
+    });
+
     describe('nested keys', function () {
 
       beforeEach(function () {

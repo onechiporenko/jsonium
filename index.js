@@ -67,7 +67,7 @@ Jsonium.prototype.createCombos = function (keysWhereReplace, data) {
         _keysWhereReplace.forEach(function (keyWhereReplace) {
           if (objectPath.has(t, keyWhereReplace)) {
             var v = objectPath.get(t, keyWhereReplace);
-            objectPath.set(t, keyWhereReplace, String(v).replace(new RegExp(comboKey), combo[key]));
+            objectPath.set(t, keyWhereReplace, String(v).replace(new RegExp(comboKey, 'g'), combo[key]));
           }
         });
       });
