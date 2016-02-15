@@ -350,6 +350,78 @@ describe('Jsonium', function () {
 
     });
 
+    describe('`keys` with `@each`', function() {
+
+      beforeEach(function () {
+        this.templates = [
+          {
+            key1:
+              [
+                {key2: '{{k2}} 1'},
+                {key2: '{{k2}} 2'},
+                {key2: '{{k2}} 3'}
+              ]
+          }
+        ];
+        this.keys = ['key1.@each.key2'];
+        this.combos = [
+          {k2: 'v2'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).uniqueCombos().getCombos();
+      });
+
+      it('1 combo is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({key1: [{key2: 'v2 1'}, {key2: 'v2 2'}, {key2: 'v2 3'}]});
+      });
+
+    });
+
+    describe('`keys` with nested `@each`', function() {
+
+      beforeEach(function () {
+        this.templates = [
+          {
+            key1:
+              [
+                {
+                  key2:
+                    [
+                      {key3: '{{k3}} 1'},
+                      {key3: '{{k3}} 2'}
+                    ]
+                },
+                {
+                  key2:
+                    [
+                      {key3: '{{k3}} 3'},
+                      {key3: '{{k3}} 4'},
+                      {key3: '{{k3}} 5'}
+                    ]
+                }
+              ]
+          }
+        ];
+        this.keys = ['key1.@each.key2.@each.key3'];
+        this.combos = [
+          {k3: 'v3'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).uniqueCombos().getCombos();
+      });
+
+      it('1 combo is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({key1: [{key2: [{key3: 'v3 1'}, {key3: 'v3 2'}]}, {key2: [{key3: 'v3 3'}, {key3: 'v3 4'}, {key3: 'v3 5'}]}]});
+      });
+
+    });
+
   });
 
   describe('#concatCombos', function () {

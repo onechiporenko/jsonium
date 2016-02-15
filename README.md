@@ -69,3 +69,67 @@ Here `J`'s created combinations will be used like datasets in the another `Jsoni
 `keys` may be nested (`a.b.c`) and indexed (`a.0`).
 
 Each substring in the templates you want to be replaced should be wrapped with `{{`, `}}`.
+
+## More examples
+
+```javascript
+var Jsonium = require('jsonium');
+var j = new Jsonium();
+var templates = [
+  {
+    a: 
+      [
+        {b: '{{sub}}'},
+        {b: '{{sub}}'}
+      ]
+    }
+];
+var keys = ['a.@each.b'];
+var datasets = [
+    {sub: 'replace1'},
+    {sub: 'replace2'}
+];
+var combos = j
+    .setTemplates(templates)
+    .createCombos(keys, datasets)
+    .uniqueCombos()
+    .getCombos();
+
+console.log(combos); // [{a: [{b: 'replace1'}, {b: 'replace1'}]}, {a: [{b: 'replace2'}, {b: 'replace2'}]}]
+```
+
+```javascript
+var Jsonium = require('jsonium');
+var j = new Jsonium();
+var templates = [
+  {
+    a: 
+      [
+        {
+          b: 
+            [
+              {c: '{{sub}}'},
+              {c: '{{sub}}'}
+            ] 
+        },
+        {
+          b: 
+            [
+              {c: '{{sub}}'}
+            ] 
+        }
+      ]
+    }
+];
+var keys = ['a.@each.b.@each.c'];
+var datasets = [
+    {sub: 'replace1'}
+];
+var combos = j
+    .setTemplates(templates)
+    .createCombos(keys, datasets)
+    .uniqueCombos()
+    .getCombos();
+
+console.log(combos); // [{a: [{b: [{c: 'replace1'}, {c: 'replace1'}]}, {b: [{c: 'replace1'}]}]}]
+```

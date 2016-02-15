@@ -1,6 +1,52 @@
 var cp = require('utils-copy');
-var objectPath = require("object-path");
+var o = require('object-path');
 var type = require('typecheckjs');
+
+/**
+ * If `data` is an array, return it without any changes
+ * Wrap `data` to the array otherwise
+ *
+ * @param {*} data
+ * @returns {array}
+ * @private
+ */
+function _makeArray(data) {
+  return Array.isArray(data) ? data : [data];
+}
+
+/**
+ * Generate list of keys to be replaced according to the template
+ * Example1:
+ * <pre>
+ *   var template = {a: [{b: ''}, {b: ''}]};
+ *   var key = 'a.@each.b';
+ *   var mappedKeys = _prepareKeys(template, key);
+ *   console.log(mappedKeys); // ['a.0.b', 'a.1.b']
+ * </pre>
+ * Example2:
+ * <pre>
+ *   var template = {a: {b: {c: ''}};
+ *   var key = 'a.b.c';
+ *   var mappedKeys = _prepareKeys(template, key);
+ *   console.log(mappedKeys); // ['a.b.c']
+ * </pre>
+ *
+ * @param {object} template
+ * @param {string} key
+ * @returns {string[]}
+ * @private
+ */
+function _prepareKeys(template, key) {
+  if (key.indexOf('@each') !== -1) {
+    var subKeys = key.split('@each');
+    var listKey = subKeys[0].slice(0, -1); // remove last '.'
+    var d = o.get(template, listKey);
+    return [].concat.apply([], d.map(function (item, index) {
+      return _prepareKeys(template, listKey + '.' + index + subKeys.slice(1).join('@each'));
+    }));
+  }
+  return [key];
+}
 
 /**
  * @param {object[]} templates
@@ -44,25 +90,27 @@ Jsonium.prototype.setTemplates = function (templates) {
  * @returns {Jsonium}
  */
 Jsonium.prototype.createCombos = function (keysWhereReplace, data) {
-  var _keysWhereReplace = type(Array).is(keysWhereReplace) ? keysWhereReplace : [keysWhereReplace];
-  var _data = type(Jsonium).is(data) ? data.getCombos() : (type(Array).is(data) ? data : [data]);
+  var _keysWhereReplace = _makeArray(keysWhereReplace);
+  var _data = type(Jsonium).is(data) ? data.getCombos() : _makeArray(data);
   var self = this;
   this.clearCombos();
-  this._templates.forEach(function(template) {
+  this._templates.forEach(function (template) {
     _data.forEach(function (combo) {
       var t = cp(template);
       Object.keys(combo).forEach(function (key) {
         var comboKey = '{{' + key + '}}';
         _keysWhereReplace.forEach(function (keyWhereReplace) {
-          if (objectPath.has(t, keyWhereReplace)) {
-            var v = objectPath.get(t, keyWhereReplace);
-            if (type(String).is(v)) {
-              objectPath.set(t, keyWhereReplace, v.replace(new RegExp(comboKey, 'g'), combo[key]));
+          _prepareKeys(t, keyWhereReplace).forEach(function (_k) {
+            if (o.has(t, _k)) {
+              var v = o.get(t, _k);
+              if (type(String).is(v)) {
+                o.set(t, _k, v.replace(new RegExp(comboKey, 'g'), combo[key]));
+              }
+              else {
+                o.set(t, _k, combo[_k]);
+              }
             }
-            else {
-              objectPath.set(t, keyWhereReplace, combo[keyWhereReplace]);
-            }
-          }
+          });
         });
       });
       self._results.push(t);
