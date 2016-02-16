@@ -15,19 +15,121 @@ function _makeArray(data) {
 }
 
 /**
+ * Generate list of the "simple" keys from the one "composite" key with "@each" and braces-blocks
+ *
+ * @param {object} template
+ * @param {string} key
+ * @returns {string[]}
+ * @private
+ */
+function _prepareKeys(template, key) {
+  return [].concat.apply([], _checkBraces(key).map(function (k) {
+    return _checkEach(template, k);
+  }));
+}
+
+/**
+ * Generate list of keys
+ * Example1:
+ * <pre>
+ *   var key = 'a.{b,c}';
+ *   var mappedKeys = _checkBraces(key);
+ *   console.log(mappedKeys); // ['a.b', 'a.c']
+ * </pre>
+ * Example2:
+ * <pre>
+ *   var key = '{a,b}.{c,d}';
+ *   var mappedKeys = _checkBraces(key);
+ *   console.log(mappedKeys); // ['a.c', 'a.d', 'b.c', 'b.d']
+ * </pre>
+ * Example3:
+ * <pre>
+ *   var key = 'a.{b.c,d.e}';
+ *   var mappedKeys = _checkBraces(key);
+ *   console.log(mappedKeys); // ['a.b.c', 'a.d.e']
+ * </pre>
+ *
+ * @param {string} key
+ * @returns {string[]}
+ * @private
+ */
+function _checkBraces(key) {
+  if (key.indexOf('{') !== -1 && key.indexOf('}') !== -1) {
+    var ret = [];
+    var tpl = '';
+    var _keys = _splitKey(key);
+    _keys.forEach(function (_k, index) {
+      if (_k.indexOf('{') === 0 && _k.indexOf('}') === _k.length - 1) {
+        var _subKeys = _keys.slice(index + 1).join('.');
+        _k.slice(1, -1).split(',').forEach(function (__k) {
+          ret = ret.concat(_checkBraces(tpl + __k.trim() + (_subKeys ? '.' + _subKeys : '')));
+        });
+      }
+      else {
+        tpl += _k + '.';
+      }
+    });
+    return ret;
+  }
+  return [key];
+}
+
+/**
+ * Split string by '.' ignoring dots inside braces '{...}'
+ * Example1:
+ * <pre>
+ *   var key = 'a.b.c';
+ *   var keys = _splitKey(key);
+ *   console.log(keys); // ['a', 'b', 'c']
+ * </pre>
+ * Example2:
+ * <pre>
+ *   var key = 'a.{b.c}.d';
+ *   var keys = _splitKey(key);
+ *   console.log(keys); // ['a', '{b.c}', 'd']
+ * </pre>
+ *
+ * @param {string} key
+ * @returns {string[]}
+ * @private
+ */
+function _splitKey(key) {
+  var insideBraces = false;
+  var currentWord = '';
+  var keys = [];
+  for (var i = 0; i < key.length; i++) {
+    currentWord += key[i];
+    if (key[i] === '{') {
+      insideBraces = true;
+      continue;
+    }
+    if (key[i] === '}') {
+      insideBraces = false;
+      continue;
+    }
+    if (key[i] === '.' && !insideBraces) {
+      keys.push(currentWord.slice(0, -1));
+      currentWord = '';
+    }
+  }
+  keys.push(currentWord);
+  return keys;
+}
+
+/**
  * Generate list of keys to be replaced according to the template
  * Example1:
  * <pre>
  *   var template = {a: [{b: ''}, {b: ''}]};
  *   var key = 'a.@each.b';
- *   var mappedKeys = _prepareKeys(template, key);
+ *   var mappedKeys = _checkEach(template, key);
  *   console.log(mappedKeys); // ['a.0.b', 'a.1.b']
  * </pre>
  * Example2:
  * <pre>
  *   var template = {a: {b: {c: ''}};
  *   var key = 'a.b.c';
- *   var mappedKeys = _prepareKeys(template, key);
+ *   var mappedKeys = _checkEach(template, key);
  *   console.log(mappedKeys); // ['a.b.c']
  * </pre>
  *
@@ -36,13 +138,13 @@ function _makeArray(data) {
  * @returns {string[]}
  * @private
  */
-function _prepareKeys(template, key) {
+function _checkEach(template, key) {
   if (key.indexOf('@each') !== -1) {
     var subKeys = key.split('@each');
     var listKey = subKeys[0].slice(0, -1); // remove last '.'
     var d = o.get(template, listKey);
     return [].concat.apply([], d.map(function (item, index) {
-      return _prepareKeys(template, listKey + '.' + index + subKeys.slice(1).join('@each'));
+      return _checkEach(template, listKey + '.' + index + subKeys.slice(1).join('@each'));
     }));
   }
   return [key];

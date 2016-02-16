@@ -422,6 +422,213 @@ describe('Jsonium', function () {
 
     });
 
+    describe('`keys` with braces', function () {
+
+      beforeEach(function () {
+        this.templates = [
+          {key1: {a: '{{k1}}', b: '{{k2}}'}}
+        ];
+        this.keys = ['key1.{a,b}'];
+        this.combos = [
+          {k1: 'v1', k2: 'v2'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
+      });
+
+      it('1 combos is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({key1: {a: 'v1', b: 'v2'}});
+      });
+
+    });
+
+    describe('`keys` with braces (2)', function () {
+
+      beforeEach(function () {
+        this.templates = [
+          {key1: {a: {c: '{{k1}}'}, b: {c: '{{k2}}'}}}
+        ];
+        this.keys = ['key1.{a,b}.c'];
+        this.combos = [
+          {k1: 'v1', k2: 'v2'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
+      });
+
+      it('1 combos is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({key1: {a: {c: 'v1'}, b: {c: 'v2'}}});
+      });
+
+    });
+
+    describe('`keys` with braces (3)', function () {
+
+      beforeEach(function () {
+        this.templates = [
+          {a: {c: '{{k1}}'}, b: {c: '{{k2}}'}}
+        ];
+        this.keys = ['{a,b}.c'];
+        this.combos = [
+          {k1: 'v1', k2: 'v2'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
+      });
+
+      it('1 combos is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({a: {c: 'v1'}, b: {c: 'v2'}});
+      });
+
+    });
+
+    describe('`keys` with braces (4)', function () {
+
+      beforeEach(function () {
+        this.templates = [
+          {a: {c: '{{k1}}', d: '{{k1}}'}, b: {c: '{{k2}}', d: '{{k2}}'}}
+        ];
+        this.keys = ['{a,b}.{c,d}'];
+        this.combos = [
+          {k1: 'v1', k2: 'v2'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
+      });
+
+      it('1 combos is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({a: {c: 'v1', d: 'v1'}, b: {c: 'v2', d: 'v2'}});
+      });
+
+    });
+
+    describe('`keys` with braces (5)', function () {
+
+      beforeEach(function () {
+        this.templates = [
+          {a: {c: {e: '{{k1}}'}, d: {e: '{{k1}}'}}, b: {c: {e: '{{k2}}'}, d: {e: '{{k2}}'}}}
+        ];
+        this.keys = ['{a,b}.{c.e,d.e}'];
+        this.combos = [
+          {k1: 'v1', k2: 'v2'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
+      });
+
+      it('1 combos is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({a: {c: {e: 'v1'}, d: {e: 'v1'}}, b: {c: {e: 'v2'}, d: {e: 'v2'}}});
+      });
+
+    });
+
+    describe('`keys` with @each and braces', function () {
+
+      beforeEach(function () {
+        this.templates = [
+          {a: {b: [{d: '{{k1}}'}], c: [{d: '{{k1}}'}]}}
+        ];
+        this.keys = ['a.{b,c}.@each.d'];
+        this.combos = [
+          {k1: 'v1'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
+      });
+
+      it('1 combos is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({a: {b: [{d: 'v1'}], c: [{d: 'v1'}]}});
+      });
+
+    });
+
+    describe('`keys` with @each and braces (2)', function () {
+
+      beforeEach(function () {
+        this.templates = [
+          {a: {b: [{d: '{{k1}}'}], c: [{d: '{{k1}}'}]}}
+        ];
+        this.keys = ['a.{b.@each.d,c.@each.d}'];
+        this.combos = [
+          {k1: 'v1'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
+      });
+
+      it('1 combos is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({a: {b: [{d: 'v1'}], c: [{d: 'v1'}]}});
+      });
+
+    });
+
+    describe('`keys` with @each and braces (3)', function () {
+
+      beforeEach(function () {
+        this.templates = [
+          {a: {b: [{d: '{{k1}}'}], c: [{d: '{{k1}}'}]}}
+        ];
+        this.keys = ['a.{b.@each,c.@each}.d'];
+        this.combos = [
+          {k1: 'v1'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
+      });
+
+      it('1 combos is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({a: {b: [{d: 'v1'}], c: [{d: 'v1'}]}});
+      });
+
+    });
+
+    describe('`keys` with @each and braces (4)', function () {
+
+      beforeEach(function () {
+        this.templates = [
+          {a: [{c: '{{k1}}', d: '{{k1}}'}, {c: '{{k1}}', d: '{{k1}}'}]}
+        ];
+        this.keys = ['a.@each.{c,d}'];
+        this.combos = [
+          {k1: 'v1'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
+      });
+
+      it('1 combos is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({a: [{c: 'v1', d: 'v1'}, {c: 'v1', d: 'v1'}]});
+      });
+
+    });
+
   });
 
   describe('#concatCombos', function () {
