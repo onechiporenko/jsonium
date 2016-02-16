@@ -537,6 +537,29 @@ describe('Jsonium', function () {
 
     });
 
+    describe('`keys` with braces (6)', function () {
+
+      beforeEach(function () {
+        this.templates = [
+          {a: {b: {d: '{{k1}}', e: '{{k1}}'}, c: {d: '{{k1}}', e: '{{k1}}'}}}
+        ];
+        this.keys = ['a.{b,c}.{d,e}'];
+        this.combos = [
+          {k1: 'v1'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).getCombos();
+      });
+
+      it('1 combos is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({a: {b: {d: 'v1', e: 'v1'}, c: {d: 'v1', e: 'v1'}}});
+      });
+
+    });
+
     describe('`keys` with @each and braces', function () {
 
       beforeEach(function () {

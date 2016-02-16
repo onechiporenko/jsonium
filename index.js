@@ -58,17 +58,19 @@ function _checkBraces(key) {
     var ret = [];
     var tpl = '';
     var _keys = _splitKey(key);
-    _keys.forEach(function (_k, index) {
+    for (var i = 0; i < _keys.length; i++) {
+      var _k = _keys[i];
       if (_k.indexOf('{') === 0 && _k.indexOf('}') === _k.length - 1) {
-        var _subKeys = _keys.slice(index + 1).join('.');
+        var _subKeys = _keys.slice(i + 1).join('.');
         _k.slice(1, -1).split(',').forEach(function (__k) {
           ret = ret.concat(_checkBraces(tpl + __k.trim() + (_subKeys ? '.' + _subKeys : '')));
         });
+        break;
       }
       else {
         tpl += _k + '.';
       }
-    });
+    }
     return ret;
   }
   return [key];
