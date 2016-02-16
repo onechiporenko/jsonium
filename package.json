@@ -23,6 +23,7 @@
     "json",
     "generator"
   ],
+  "tonicExampleFilename": "example.js",
   "author": "onechiporenko",
   "license": "MIT",
   "bugs": {

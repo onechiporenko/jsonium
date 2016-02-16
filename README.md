@@ -133,3 +133,22 @@ var combos = j
 
 console.log(combos); // [{a: [{b: [{c: 'replace1'}, {c: 'replace1'}]}, {b: [{c: 'replace1'}]}]}]
 ```
+
+```javascript
+var Jsonium = require('jsonium');
+var j = new Jsonium();
+var templates = [
+  {key1: {a: '{{k1}}', b: '{{k2}}'}}
+];
+var keys = ['key1.{a,b}'];
+var datasets = [
+    {k1: 'v1', k2: 'v2'}
+];
+var combos = j
+    .setTemplates(templates)
+    .createCombos(keys, datasets)
+    .uniqueCombos()
+    .getCombos();
+
+console.log(combos); // [{key1: {a: 'v1', b: 'v2'}}]
+```
