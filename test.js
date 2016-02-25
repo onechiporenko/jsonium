@@ -380,6 +380,36 @@ describe('Jsonium', function () {
 
     });
 
+    describe('`keys` with `@each` (2)', function() {
+
+      beforeEach(function () {
+        this.templates = [
+          {
+            key1:
+              [
+                '{{k2}} 1',
+                '{{k2}} 2',
+                '{{k2}} 3'
+              ]
+          }
+        ];
+        this.keys = ['key1.@each'];
+        this.combos = [
+          {k2: 'v2'}
+        ];
+        this.result = this.J.setTemplates(this.templates).createCombos(this.keys, this.combos).uniqueCombos().getCombos();
+      });
+
+      it('1 combo is created', function () {
+        expect(this.result).to.have.property('length').equal(1);
+      });
+
+      it('1st combo', function () {
+        expect(this.result[0]).to.be.eql({key1: ['v2 1', 'v2 2', 'v2 3']});
+      });
+
+    });
+
     describe('`keys` with nested `@each`', function() {
 
       beforeEach(function () {

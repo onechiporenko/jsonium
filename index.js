@@ -1,13 +1,9 @@
-var cp = require('utils-copy');
-var o = require('object-path');
-var type = require('typecheckjs');
-
 /**
  * If `data` is an array, return it without any changes
  * Wrap `data` to the array otherwise
  *
  * @param {*} data
- * @returns {array}
+ * @returns {Array}
  * @private
  */
 function _makeArray(data) {
@@ -15,7 +11,97 @@ function _makeArray(data) {
 }
 
 /**
- * Generate list of the "simple" keys from the one "composite" key with "@each" and braces-blocks
+ * Check if value is an array of objects
+ *
+ * @param {*} value
+ * @returns {boolean}
+ * @private
+ */
+function _isArrayOfObjects(value) {
+  if (!Array.isArray(value)) {
+    return false;
+  }
+  var l = value.length;
+  var _type, cond;
+  for (var i = 0; i < l; i++) {
+    _type = typeof value[i];
+    cond = _type === 'function' || _type === 'object' && !!value[i];
+    if (!cond) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Get object's value by provided nested path
+ *
+ * @param {object} obj
+ * @param {string} path
+ * @returns {*}
+ * @private
+ */
+function _get(obj, path) {
+  var subpathes = path.split('.');
+  while (subpathes.length) {
+    var subpath = subpathes.shift();
+    obj = obj[subpath];
+    if (!obj) {
+      return obj;
+    }
+  }
+  return obj;
+}
+
+/**
+ * Set object's value by provided nested path
+ *
+ * @param {object} obj
+ * @param {string} path
+ * @param {*} value
+ * @private
+ */
+function _set(obj, path, value) {
+  var subpathes = path.split('.');
+  while (subpathes.length - 1) {
+    obj = obj[subpathes.shift()];
+  }
+  obj[subpathes.shift()] = value;
+}
+
+/**
+ * Check if object has provided nested path
+ *
+ * @param {object} obj
+ * @param {string} path
+ * @returns {boolean}
+ * @private
+ */
+function _has(obj, path) {
+  var subpathes = path.split('.');
+  while (subpathes.length) {
+    var subpath = subpathes.shift();
+    if (!obj.hasOwnProperty(subpath)) {
+      return false;
+    }
+    obj = obj[subpath];
+  }
+  return true;
+}
+
+/**
+ * Dummy way to copy some JSON
+ *
+ * @param {*} mixed
+ * @returns {*}
+ * @private
+ */
+function _cp(mixed) {
+  return JSON.parse(JSON.stringify(mixed));
+}
+
+/**
+ * Generate list of the 'simple' keys from the one 'composite' key with '@each' and braces-blocks
  *
  * @param {object} template
  * @param {string} key
@@ -62,8 +148,9 @@ function _checkBraces(key) {
       var _k = _keys[i];
       if (_k.indexOf('{') === 0 && _k.indexOf('}') === _k.length - 1) {
         var _subKeys = _keys.slice(i + 1).join('.');
+        var suffix = _subKeys ? '.' + _subKeys : '';
         _k.slice(1, -1).split(',').forEach(function (__k) {
-          ret = ret.concat(_checkBraces(tpl + __k.trim() + (_subKeys ? '.' + _subKeys : '')));
+          ret = ret.concat(_checkBraces(tpl + __k.trim() + suffix));
         });
         break;
       }
@@ -144,9 +231,10 @@ function _checkEach(template, key) {
   if (key.indexOf('@each') !== -1) {
     var subKeys = key.split('@each');
     var listKey = subKeys[0].slice(0, -1); // remove last '.'
-    var d = o.get(template, listKey);
+    var d = _get(template, listKey);
+    var suffix = subKeys.slice(1).join('@each');
     return [].concat.apply([], d.map(function (item, index) {
-      return _checkEach(template, listKey + '.' + index + subKeys.slice(1).join('@each'));
+      return _checkEach(template, listKey + '.' + index + suffix);
     }));
   }
   return [key];
@@ -170,8 +258,8 @@ Jsonium.prototype.constructor = Jsonium;
  * @returns {Jsonium}
  */
 Jsonium.prototype.setTemplates = function (templates) {
-  if (type(Array).of(Object).is(templates)) {
-    this._templates = cp(templates);
+  if (_isArrayOfObjects(templates)) {
+    this._templates = _cp(templates);
   }
   return this;
 };
@@ -195,23 +283,25 @@ Jsonium.prototype.setTemplates = function (templates) {
  */
 Jsonium.prototype.createCombos = function (keysWhereReplace, data) {
   var _keysWhereReplace = _makeArray(keysWhereReplace);
-  var _data = type(Jsonium).is(data) ? data.getCombos() : _makeArray(data);
+  var _data = data instanceof Jsonium ? data.getCombos() : _makeArray(data);
   var self = this;
+  var v, t;
   this.clearCombos();
+  var regexp;
   this._templates.forEach(function (template) {
     _data.forEach(function (combo) {
-      var t = cp(template);
+      t = _cp(template);
       Object.keys(combo).forEach(function (key) {
-        var comboKey = '{{' + key + '}}';
+        regexp = new RegExp('{{' + key + '}}', 'g');
         _keysWhereReplace.forEach(function (keyWhereReplace) {
           _prepareKeys(t, keyWhereReplace).forEach(function (_k) {
-            if (o.has(t, _k)) {
-              var v = o.get(t, _k);
-              if (type(String).is(v)) {
-                o.set(t, _k, v.replace(new RegExp(comboKey, 'g'), combo[key]));
+            if (_has(t, _k)) {
+              v = _get(t, _k);
+              if (typeof v === 'string' || v instanceof String) {
+                _set(t, _k, v.replace(regexp, combo[key]));
               }
               else {
-                o.set(t, _k, combo[_k]);
+                _set(t, _k, combo[_k]);
               }
             }
           });
@@ -230,7 +320,7 @@ Jsonium.prototype.createCombos = function (keysWhereReplace, data) {
  * @return {Jsonium}
  */
 Jsonium.prototype.concatCombos = function (combos) {
-  this._results = this._results.concat(type(Jsonium).is(combos) ? combos.getCombos() : (type(Array).of(Object).is(combos) ? combos : []));
+  this._results = this._results.concat(combos instanceof Jsonium ? combos.getCombos() : (_isArrayOfObjects(combos) ? combos : []));
   return this;
 };
 
@@ -254,7 +344,7 @@ Jsonium.prototype.switchKeys = function (keyBefore, keyAfter) {
     Object.keys(map).forEach(function (kB) {
       if (item.hasOwnProperty(kB)) {
         var kA = map[kB];
-        item[kA] = cp(item[kB]);
+        item[kA] = _cp(item[kB]);
         delete item[kB];
       }
     });
@@ -316,7 +406,7 @@ Jsonium.prototype.uniqueCombos = function () {
  * @returns {Jsonium}
  */
 Jsonium.prototype.useCombosAsTemplates = function () {
-  this._templates = cp(this._results);
+  this._templates = _cp(this._results);
   return this;
 };
 
